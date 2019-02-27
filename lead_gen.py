@@ -33,7 +33,7 @@ def max_circle(func_to_get, where_to_take, what_to_get, number):
     while next_max_id:
         results = func_to_get(where_to_take, max_id=next_max_id)
         result_list.extend(results.get(what_to_get, []))
-        if len(result_list) >= number:       # get only first 600 or so
+        if len(result_list) >= number:
             break
         next_max_id = results.get('next_max_id')
 
@@ -48,23 +48,13 @@ def getFeed(user_id = '2958144170', limit = 60):
     while next_max_id:
         results = api.user_feed(user_id, max_id=next_max_id)
         result_posts.extend(results.get('items', []))
-        if len(result_posts) >= limit:       # get only first 600 or so
+        if len(result_posts) >= limit:
             break
         next_max_id = results.get('next_max_id')
 
     result_posts.sort(key=lambda x: x['taken_at'])
     return result_posts
 
-'''def getFeedGen(user_id = '2958144170', limit = 60):
-    results = api.user_feed(user_id)
-    next_max_id = results.get('next_max_id')
-
-    while next_max_id:
-        results = api.user_feed(user_id, max_id=next_max_id)
-        yield results.get('items', [])
-        if len(result_posts) >= limit:  # get only first 600 or so
-            break
-        next_max_id = results.get('next_max_id')'''
 
 # return all list
 def getHashtag(generate_rank=Client.generate_uuid(), hashtag = 'cats', limit = 60):
@@ -132,7 +122,7 @@ def getHashtagFeed(gen_token = Client.generate_uuid(), hashtag = 'cats', limit =
         if len(tgs) >= limit:
             break
         more_available = results['more_available']
-    return tgs # results['items'] returned
+    return tgs
 
 def getHashtagFeedGen(gen_token = Client.generate_uuid(), hashtag = 'cats', limit = 60):
     results = api.feed_tag(hashtag, gen_token)
@@ -147,7 +137,6 @@ def getHashtagFeedGen(gen_token = Client.generate_uuid(), hashtag = 'cats', limi
         if tgs_number >= limit:
             break
         more_available = results['more_available']
-    #return tgs # results['items'] returned
 
 def getAllUsers(user_id = '2958144170', rank_token = Client.generate_uuid()):
 
@@ -178,8 +167,6 @@ def getAllUsersGen(user_id = '2958144170', rank_token = Client.generate_uuid()):
         yield [id['pk'] for id in followers]
         next_max_id = results.get('next_max_id')
 
-    #followers.sort(key=lambda x: x['pk'])
-    #return [id['pk'] for id in followers]
 
 class Profile:
     def __init__ (self, id, api):
@@ -193,24 +180,24 @@ class Profile:
         self.username = profile['username']
         self.name = profile['full_name']
         self.number_of_followers = profile['follower_count']
-        self.email = [] # get mail - bio and post    +-> re #2
-        self.phones = [] # get phone - bio and post  +-> re #3
+        self.email = [] # get mail - bio and post
+        self.phones = [] # get phone - bio and post
 
         self.bio = profile['biography']
 
-        self.hongkong = '' # func integration        +-> integrate ↓ #8
+        self.hongkong = ''
 
         self.localPostsNumber = 0 # helper ↓
         self.localPostsNumberBad = 0 # helper ↓
         self.lonlat = 0 # localPosts helper ↓
 
-        self.localPosts = '' # check 3 post locations (+/-) +-> get ['locations'] #7
-        self.language = '' # check bio and post (+)  +-> polyglot #5 <- install polyglot
-        self.emoji = '' # check bio and post (+)     +-> if exists in string #1
-        self.phonecode = '' # till phone not found   +-> re #4
-        self.localTagWord = '' # check tags bio and post +-> get tags list #6
+        self.localPosts = '' # check 3 post locations
+        self.language = '' # check bio and post
+        self.emoji = '' # check bio and post
+        self.phonecode = '' # till phone not found
+        self.localTagWord = '' # check tags bio and post
 
-        #self.twtUserCountry = '' # maybe add checker -> twt.api + twt.api.country #9
+        #self.twtUserCountry = '' # maybe add checker
 
     def get_mail(self, s):
         emails = re.findall("([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", s)
@@ -226,7 +213,7 @@ class Profile:
                     break
 
     def find_phone_numbers(self, s):
-        phones = re.findall('\(*\+*[1-9]{0,3}\)*-*[1-9]{0,3}[-. /]*\(*[2-9]\d{2}\)*[-. /]*\d{3}[-. /]*\d{4} *e*x*t*\.* *\d{0,4}',s)#'[+]*([(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9()]*){7,14}',s)
+        phones = re.findall('\(*\+*[1-9]{0,3}\)*-*[1-9]{0,3}[-. /]*\(*[2-9]\d{2}\)*[-. /]*\d{3}[-. /]*\d{4} *e*x*t*\.* *\d{0,4}',s)
         if phones:
             self.phones.extend(i for i in phones if i not in self.phones)
 
@@ -235,7 +222,7 @@ class Profile:
             if self.phones:
                 for phone in self.phones:
                     code = getCode(phone)
-                    if code == '852': #Hong Kong code
+                    if code == '852':
                         self.phonecode = '+'
                         break
 
@@ -244,7 +231,7 @@ class Profile:
         if self.language != '+':
             try:
                 for language in Detector(str(s)).languages:
-                    if 'chinese' in language.name.lower() or 'китайский' in language.name.lower(): #check Hong Kong is Chinese?
+                    if 'chinese' in language.name.lower() or 'китайский' in language.name.lower():
                         self.language = '+'
                         break
             except base.UnknownLanguage:
@@ -288,7 +275,7 @@ class Profile:
             if self.localPosts == '+' or self.language == '+' or self.emoji == '+' or self.phonecode == '+' or self.localTagWord == '+':
                 self.hongkong = '+'
 
-    def getFeedGen(self, limit = 60): #user_id = '2958144170',
+    def getFeedGen(self, limit = 60):
 
         results = api.user_feed(self.user_id)
         next_max_id = results.get('next_max_id')
@@ -299,11 +286,10 @@ class Profile:
             results = api.user_feed(self.user_id, max_id=next_max_id)
             yield results.get('items', [])
             posts_num += len(results.get('items', []))
-            if posts_num >= limit:  # get only first 600 or so
+            if posts_num >= limit:
                 break
             next_max_id = results.get('next_max_id')
 
-    # test every func separately #11
 
 # Execution
 if __name__ == '__main__':
@@ -349,7 +335,6 @@ if __name__ == '__main__':
     'Private account'], 'w')
 
     ids = readCsv('path')
-    #writeToCsv('path', ['id'], 'w')
 
     def processwr(id, api):
         P = Profile(id, api)
